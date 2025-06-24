@@ -1,0 +1,274 @@
+{
+  "name": "My workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "jsCode": "const courseDetails = $input.first().json;\n\n// Define your 20 base prompts here, specifically tailored for Entersoftlabs' offerings.\n// These will be randomly selected and dynamically updated with course details.\nconst basePrompts = [\n  \"A high-impact poster for {{ courseName }} (Ethical Hacking/Cybersecurity). Show a lock icon with digital lines, emphasizing security. Text: 'Master Cyber Defense. Starts {{ startDate }} at {{ startTime }} ({{ mode }})'.\",\n  \"A tech-savvy poster for {{ courseName }} (Red Hat Linux/DevOps). Feature a Linux penguin or gears, symbolizing robust systems. Text: 'Build Secure IT Infrastructure. Enroll Now! {{ startDate }} {{ startTime }}'.\",\n  \"Minimalist yet powerful poster for {{ courseName }} (AWS/Cloud Computing). Use cloud shapes and network diagrams. Text: 'Elevate Your Cloud Skills. Next Batch: {{ startDate }} {{ startTime }} ({{ mode }})'.\",\n  \"A vibrant poster for {{ courseName }} (Full Stack Python). Show code snippets and creative elements, emphasizing development. Text: 'Code Your Future! Join Us {{ startDate }} | {{ startTime }}'.\",\n  \"Professional poster for {{ courseName }} (any certification). Highlight a certificate and a confident professional. Text: 'Get Certified! {{ courseName }} on {{ startDate }} ({{ mode }})'.\",\n  \"Dynamic poster for {{ courseName }} (Penetration Testing). Visualize data flow and security vulnerabilities being exposed. Text: 'Become a Pen Tester Expert. Starts {{ startDate }} {{ startTime }}'.\",\n  \"A poster for {{ courseName }} (Cyber Forensics). Show digital forensics tools or magnifying glass over data. Text: 'Uncover Digital Clues. Learn CHFI: {{ startDate }} ({{ mode }})'.\",\n  \"Modern poster for {{ courseName }} (System Administration). Use server racks or command-line interface elements. Text: 'Master Linux Administration. RHCSA/RHCE Training: {{ startDate }}'.\",\n  \"An action-oriented poster for {{ courseName }} (Ethical Hacking). Use a hooded figure in a digital matrix, emphasizing a 'white hat' approach. Text: 'Ethical Hacking Unleashed! {{ startDate }} {{ startTime }}'.\",\n  \"Clean and focused poster for {{ courseName }} (SOC Analyst). Feature a cybersecurity operations center dashboard. Text: 'Your Path to SOC Analyst. Course Begins {{ startDate }} ({{ mode }})'.\",\n  \"Illustrative poster for {{ courseName }} (Network Security). Show interconnected devices and firewalls. Text: 'Secure Networks with {{ courseName }}. Join: {{ startDate }} {{ startTime }}'.\",\n  \"A poster emphasizing practical skills for {{ courseName }}. Show hands-on keyboard, coding or problem-solving. Text: 'Hands-On Learning: {{ courseName }}. Starts {{ startDate }} ({{ mode }})'.\",\n  \"A bold poster for {{ courseName }} (any course), using strong contrasting colors and a clear message of empowerment. Text: 'Ignite Your IT Career with {{ courseName }}'.\",\n  \"Futuristic poster for {{ courseName }} (emerging tech courses like DevOps/Cloud). Use abstract data representations. Text: 'Embrace Future Tech. Next Intake: {{ startDate }} {{ startTime }}'.\",\n  \"An inviting poster for {{ courseName }}, featuring diverse students collaborating in a tech environment. Text: 'Learn, Connect, Succeed. Enroll for {{ courseName }}'.\",\n  \"A growth-oriented poster for {{ courseName }}. Visualize a rising graph or a growing tree with digital roots. Text: 'Accelerate Your Skills with {{ courseName }}'.\",\n  \"A poster for {{ courseName }} highlighting industry recognition. Show logos of partners (e.g., Red Hat, EC-Council). Text: 'Industry-Recognized Certifications: {{ courseName }}'.\",\n  \"A poster for {{ courseName }} focused on career transformation. Show a before/after concept or a path leading to success. Text: 'Transform Your Future with {{ courseName }}'.\",\n  \"A sleek, professional poster for {{ courseName }} emphasizing expertise. Use subtle textures and professional photography. Text: 'Expert-Led Training: {{ courseName }}'.\",\n  \"A poster for {{ courseName }} featuring a countdown or a 'limited seats' message, creating urgency. Text: 'Don't Miss Out! {{ courseName }} Starts Soon: {{ startDate }}'.\"\n];\n\nconst generatedPrompts = [];\nfor (let i = 0; i < 40; i++) {\n  const randomIndex = Math.floor(Math.random() * basePrompts.length); // Get a random index\n  let selectedPrompt = basePrompts[randomIndex];\n\n  // Replace placeholders with actual course details from the Manual Trigger node\n  selectedPrompt = selectedPrompt.replace(/{{ courseName }}/g, courseDetails.courseName);\n  selectedPrompt = selectedPrompt.replace(/{{ startDate }}/g, courseDetails.startDate);\n  selectedPrompt = selectedPrompt.replace(/{{ startTime }}/g, courseDetails.startTime);\n  selectedPrompt = selectedPrompt.replace(/{{ mode }}/g, courseDetails.mode);\n  selectedPrompt = selectedPrompt.replace(/{{ contactEmail }}/g, courseDetails.contactEmail);\n  selectedPrompt = selectedPrompt.replace(/{{ joiningLink }}/g, courseDetails.joiningLink);\n\n  generatedPrompts.push({\n    prompt: selectedPrompt,\n    courseName: courseDetails.courseName,\n    startDate: courseDetails.startDate,\n    startTime: courseDetails.startTime,\n    mode: courseDetails.mode,\n    contactEmail: courseDetails.contactEmail,\n    joiningLink: courseDetails.joiningLink,\n    posterIndex: i + 1 // To keep track of which poster it is\n  });\n}\n\nreturn generatedPrompts.map(item => ({ json: item })); // Return as an array of JSON objects"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        220,
+        0
+      ],
+      "id": "e0306647-8696-4174-9290-069b33ee8db8",
+      "name": "Code"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        440,
+        0
+      ],
+      "id": "6ebda343-cb99-4e22-99ed-6a2147526623",
+      "name": "Loop Over Items"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/generate",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBearerAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"blackforestlabs/flux-1-kontext-schnell:free\",\n  \"prompt\": \"{{$json.prompt}}\"\n}\n",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        660,
+        100
+      ],
+      "id": "4d531ef5-34b7-4b60-a4bb-c301e6f7aa18",
+      "name": "HTTP Request",
+      "credentials": {
+        "httpBearerAuth": {
+          "id": "JYsmSRqxEAQqFrDL",
+          "name": "Bearer Auth account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "6613326a-62be-4b1a-8314-a43fcffb1fd0",
+              "name": "filename",
+              "value": "=fileName = {{$json.courseName.replace(/ /g, '_')}}_Poster_{{$json.posterIndex}}.jpg\nposterBinaryOutput = $binary.data\n",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        900,
+        240
+      ],
+      "id": "595c5353-0e83-4dce-a3b7-b8eba38e878f",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1bGyZL23VXefYQotc92YDSA3mQxLVelLrzx8TZCwxgE0",
+          "mode": "list",
+          "cachedResultName": "Test",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1bGyZL23VXefYQotc92YDSA3mQxLVelLrzx8TZCwxgE0/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Test",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1bGyZL23VXefYQotc92YDSA3mQxLVelLrzx8TZCwxgE0/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.6,
+      "position": [
+        660,
+        -27
+      ],
+      "id": "f67ca5a9-3d95-4b14-955b-9f89cba06c94",
+      "name": "Get row(s) in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "QoghGudFwLKD4SQ5",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "8134ae9a-1021-42a1-8df5-f6ae073bc339",
+              "leftValue": "={{ $json.Course }}",
+              "rightValue": "={{ $(\"Manual Trigger\").first().json.courseName }}",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.2,
+      "position": [
+        900,
+        -80
+      ],
+      "id": "be8e5251-5dfd-4add-980d-adf3d872637a",
+      "name": "Filter"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "40ad927c-4467-4bb2-864b-382a64e63fc4",
+      "name": "Manual Trigger"
+    }
+  ],
+  "pinData": {
+    "Manual Trigger": [
+      {
+        "json": {
+          "courseName": "Certified Ethical Hacker (CEH)",
+          "courseShortCode": "CEH",
+          "startDate": "2025-07-15",
+          "startTime": "09:00 AM",
+          "mode": "Online and Classroom",
+          "contactEmail": "admissions@entersoftlabs.com",
+          "joiningLink": "https://entersoftlabs.com/join-ceh-masterclass",
+          "courseCategory": "Cybersecurity"
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet": {
+      "main": [
+        [
+          {
+            "node": "Filter",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "b5988bdc-5472-4dc3-baa5-29ba18497651",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "852f5986b49c867149cc28f64a070f64fc37d49cde1846fa48f01a1046f15962"
+  },
+  "id": "aBCppz0Vu3rC0CPe",
+  "tags": []
+}
