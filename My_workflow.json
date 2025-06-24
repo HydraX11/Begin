@@ -57,7 +57,7 @@
       "typeVersion": 4.2,
       "position": [
         660,
-        100
+        120
       ],
       "id": "4d531ef5-34b7-4b60-a4bb-c301e6f7aa18",
       "name": "HTTP Request",
@@ -85,77 +85,11 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        900,
-        240
+        860,
+        120
       ],
       "id": "595c5353-0e83-4dce-a3b7-b8eba38e878f",
       "name": "Edit Fields"
-    },
-    {
-      "parameters": {
-        "documentId": {
-          "__rl": true,
-          "value": "1bGyZL23VXefYQotc92YDSA3mQxLVelLrzx8TZCwxgE0",
-          "mode": "list",
-          "cachedResultName": "Test",
-          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1bGyZL23VXefYQotc92YDSA3mQxLVelLrzx8TZCwxgE0/edit?usp=drivesdk"
-        },
-        "sheetName": {
-          "__rl": true,
-          "value": "gid=0",
-          "mode": "list",
-          "cachedResultName": "Test",
-          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1bGyZL23VXefYQotc92YDSA3mQxLVelLrzx8TZCwxgE0/edit#gid=0"
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.googleSheets",
-      "typeVersion": 4.6,
-      "position": [
-        660,
-        -27
-      ],
-      "id": "f67ca5a9-3d95-4b14-955b-9f89cba06c94",
-      "name": "Get row(s) in sheet",
-      "credentials": {
-        "googleSheetsOAuth2Api": {
-          "id": "QoghGudFwLKD4SQ5",
-          "name": "Google Sheets account"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "conditions": {
-          "options": {
-            "caseSensitive": true,
-            "leftValue": "",
-            "typeValidation": "strict",
-            "version": 2
-          },
-          "conditions": [
-            {
-              "id": "8134ae9a-1021-42a1-8df5-f6ae073bc339",
-              "leftValue": "={{ $json.Course }}",
-              "rightValue": "={{ $(\"Manual Trigger\").first().json.courseName }}",
-              "operator": {
-                "type": "string",
-                "operation": "contains"
-              }
-            }
-          ],
-          "combinator": "and"
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.filter",
-      "typeVersion": 2.2,
-      "position": [
-        900,
-        -80
-      ],
-      "id": "be8e5251-5dfd-4add-980d-adf3d872637a",
-      "name": "Filter"
     },
     {
       "parameters": {},
@@ -167,6 +101,92 @@
       ],
       "id": "40ad927c-4467-4bb2-864b-382a64e63fc4",
       "name": "Manual Trigger"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "mode": "url",
+          "value": "https://docs.google.com/spreadsheets/d/1bGyZL23VXefYQotc92YDSA3mQxLVelLrzx8TZCwxgE0/edit?usp=drivesdk",
+          "__regex": "https:\\/\\/(?:drive|docs)\\.google\\.com(?:\\/.*|)\\/d\\/([0-9a-zA-Z\\-_]+)(?:\\/.*|)"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Test",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1bGyZL23VXefYQotc92YDSA3mQxLVelLrzx8TZCwxgE0/edit#gid=0"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "Course",
+              "lookupValue": "={{$json[\"courseShortCode\"]}}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.6,
+      "position": [
+        880,
+        -100
+      ],
+      "id": "b767bbd2-b2b7-4157-adf6-7e2669cd5292",
+      "name": "Get row(s) in sheet",
+      "executeOnce": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "QoghGudFwLKD4SQ5",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "2b88f2de-6ff6-46b9-9f71-02053e6e6896",
+              "name": "courseShortCode",
+              "value": "={{$(\"Manual Trigger\").item.json[\"courseShortCode\"]}}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        660,
+        -100
+      ],
+      "id": "ef10b66b-7582-435e-a771-3272f6d44368",
+      "name": "Edit Fields1"
+    },
+    {
+      "parameters": {
+        "sendTo": "={{$json[\"Email\"]}}",
+        "subject": "=Course Update: {{$node[\"Manual Trigger\"].json[\"courseName\"]}} - Starting {{$node[\"Manual Trigger\"].json[\"startDate\"]}} At {{$node[\"Manual Trigger\"].json[\"startTime\"]}}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1120,
+        -100
+      ],
+      "id": "fcae1ae1-6a70-46b0-af88-b836a46505b6",
+      "name": "Send a message",
+      "webhookId": "df5efaaa-98d1-4ec1-a50f-d87444082128",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "tEaeUA0vOMBF4SLE",
+          "name": "Gmail account"
+        }
+      }
     }
   ],
   "pinData": {
@@ -201,7 +221,7 @@
       "main": [
         [
           {
-            "node": "Get row(s) in sheet",
+            "node": "Edit Fields1",
             "type": "main",
             "index": 0
           }
@@ -237,22 +257,33 @@
         ]
       ]
     },
-    "Get row(s) in sheet": {
+    "Manual Trigger": {
       "main": [
         [
           {
-            "node": "Filter",
+            "node": "Code",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Manual Trigger": {
+    "Get row(s) in sheet": {
       "main": [
         [
           {
-            "node": "Code",
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet",
             "type": "main",
             "index": 0
           }
